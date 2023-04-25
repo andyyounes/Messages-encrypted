@@ -1,25 +1,25 @@
 /* This program calculates the Key for two persons
 using the Diffie-Hellman Key exchange algorithm using C++ */
-#include <cmath>
-#include <iostream>
+#include <cmath> // library for math
+#include <iostream> // library for including input and output stream
 
 using namespace std;
 
 // Power function to return value of a ^ b mod P
-long long int power(long long int a, long long int b,
+long long int power(long long int m1, long long int m2,
 					long long int P)
 {
-	if (b == 1)
-		return a;
+	if (m2 == 1)
+		return m1;
 
 	else
-		return (((long long int)pow(a, b)) % P);
+		return (((long long int)pow(m1, m2)) % P);
 }
 
 // Driver program
 int main()
 {
-	long long int P, G, x, a, y, b, ka, kb;
+	long long int P, G, x, m1, y, m2, km1, km2;
 
 	// Both the persons will be agreed upon the
 	// public keys G and P
@@ -29,26 +29,26 @@ int main()
 	G = 9; // A primitive root for P, G is taken
 	cout << "The value of G : " << G << endl;
 
-	// Alice will choose the private key a
-	a = 4; // a is the chosen private key
-	cout << "The private key a for Alice : " << a << endl;
+	// motor 1 will choose the private key m1
+	m1 = 4; // m1 is the chosen private key
+	cout << "The private key a for Motor 1 : " << m1 << endl;
 
-	x = power(G, a, P); // gets the generated key
+	x = power(G, m1, P); // gets the generated key
 
-	// Bob will choose the private key b
-	b = 3; // b is the chosen private key
-	cout << "The private key b for Bob : " << b << endl;
+	// motor2 will choose the private key m2
+	m2 = 3; // m2 is the chosen private key
+	cout << "The private key b for Motor 2 : " << m2 << endl;
 
-	y = power(G, b, P); // gets the generated key
+	y = power(G, m2, P); // gets the generated key
 
 	// Generating the secret key after the exchange
 	// of keys
-	ka = power(y, a, P); // Secret key for Alice
-	kb = power(x, b, P); // Secret key for Bob
-	cout << "Secret key for the Alice is : " << ka << endl;
+	km1 = power(y, m1, P); // Secret key for Motor 1
+	km2 = power(x, m2, P); // Secret key for Motor 2
+	cout << "Secret key for the Motor 1 is : " << km1 << endl;
 
-	cout << "Secret key for the Bob is : " << kb << endl;
+	cout << "Secret key for the Motor 2 is : " << km2 << endl;
 
 	return 0;
 }
-// This code is contributed by Pranay Arora
+
