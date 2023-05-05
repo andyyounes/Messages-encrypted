@@ -1,0 +1,126 @@
+/* This program calculates the Key for two persons
+using the Diffie-Hellman Key exchange algorithm, takes the key and use it for viginere using C++ */
+// This program is not done yet
+#include <cmath> // library for math
+#include <iostream> // library for including input and output stream
+
+using namespace std;
+
+// Power function to return value of a ^ b mod P
+long long int power(long long int m1, long long int m2,
+	long long int P)
+{
+	if (m2 == 1)
+		return m1;
+
+	else
+		return (((long long int)pow(m1, m2)) % P);
+}
+class generate_Key {
+public:
+	//Construtor for Diffie hellman to generate a key
+	generate_Key(long long P, long long int G, long long int m1, long long int m2, long long int x, long long int y, long long int km1, long long int km2, long long int key) {
+		P = 23;
+		G = 9;
+		m1 = 4;
+		m2 = 3;
+		x = power(G, m1, P); //gets the generated key
+		y = power(G, m2, P); // gets the generated key
+
+		// Generating the secret key after the exchange
+		// of keys
+		km1 = power(y, m1, P); // Secret key for Motor 1
+		km2 = power(x, m2, P); // Secret key for Motor 2key = km1;
+		key = km1;
+
+	}
+	string generateKey(string str, string key);
+};
+
+// This function generates the key in
+// a cyclic manner until it's length isn't
+// equal to the length of original text
+string generateKey(string str, string key)
+{
+	
+	int x = str.size();
+
+	for (int i = 0; ; i++)
+	{
+		if (x == i)
+			i = 0;
+		if (key.size() == str.size())
+			break;
+		key.push_back(key[i]);
+	}
+	return key;
+}
+// This function returns the encrypted text
+// generated with the help of the key
+string encrypText(string str, string key)
+{
+	string cipher_text;
+
+	for (int i = 0; i < str.size(); i++)
+	{
+		// converting in range 0-25
+		char x = (str[i] + key[i]) % 26;
+
+		// convert into alphabets(ASCII)
+		x += 'A';
+
+		cipher_text.push_back(x);
+	}
+	return cipher_text;
+}
+// This function decrypts the encrypted text
+// and returns the original text
+string originalText(string cipher_text, string key)
+{
+	string orig_text;
+
+	for (int i = 0; i < cipher_text.size(); i++)
+	{
+		// converting in range 0-25 for upper case and 0-25 for lower case alphabet
+		char x = (cipher_text[i] - key[i] + 26) % 26;
+
+		// convert into alphabets(ASCII)
+		x += 'A';
+		orig_text.push_back(x);
+
+
+	}
+	return orig_text;
+}
+
+// Driver program
+int main()
+{ 
+	// Diffie Hellman
+	generate_Key 
+
+	
+	//Viginere
+	//Get string to encrypt and keyword
+	string str;
+	string keyword;
+	cout << "Enter the string you would like to encrypt: " << endl;
+	cin >> str;
+	cout << "Enter Keyword: " << endl;
+	cin >> keyword;
+	
+
+	string key = generateKey(str, keyword);
+	string cipher_text = encrypText(str, km1);
+
+	cout << "Ciphertext : "
+		<< cipher_text << "\n";
+
+	cout << "Original/Decrypted Text : "
+		<< originalText(cipher_text, km1);
+
+	return 0;
+
+	
+}
+
