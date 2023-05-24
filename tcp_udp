@@ -1,0 +1,312 @@
+void CSocketTestClientDlg::OnBnClickedOk() 
+
+{ 
+
+   
+
+    SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); 
+
+    if(s == -1) 
+
+    { 
+
+        AfxMessageBox("Socket Initialiation Error"); 
+
+    } 
+
+    SOCKADDR_IN serveraddr; 
+
+    struct hostent *hostentry; 
+
+  
+
+    
+
+    bool bSent = false; 
+
+    std::string server = "localhost"; 
+
+    int portno = 1818; 
+
+    
+
+    hostentry = gethostbyname(server.c_str()); 
+
+    char *pipaddr = inet_ntoa (*(struct in_addr *)*hostentry->h_addr_list); 
+
+  
+
+     memset(&serveraddr,0, sizeof(serveraddr)); 
+
+     serveraddr.sin_family = AF_INET; 
+
+     serveraddr.sin_port = htons(portno); 
+
+     serveraddr.sin_addr.s_addr = inet_addr(pipaddr); 
+
+  
+
+    //serv_addr.sa_data = htons(portno); 
+
+  
+
+    if (connect(s,(SOCKADDR*)&serveraddr,sizeof(SOCKADDR_IN)) < 0) 
+
+    { 
+
+         AfxMessageBox("ERROR connecting to the server"); 
+
+         exit(1); 
+
+    } 
+
+  
+
+    char sbuf[1024], rbuf[1024]; 
+
+    
+
+    UpdateData(TRUE); 
+
+    sprintf(sbuf,"%s\r\n", (const char*) m_senddata); 
+
+    if(send(s, sbuf, strlen(sbuf), 0) == strlen(sbuf)) 
+
+    { 
+
+        recv(s, rbuf, 1024, 0); 
+
+        m_recvData = rbuf; 
+
+        UpdateData(FALSE); 
+
+    } 
+
+    ::closesocket(s); 
+
+} 
+
+  
+
+  
+
+void CSocketTestServerDlg::StartServer() 
+
+{ 
+
+      SOCKADDR_IN serveraddr; 
+
+    int portno = 1818; 
+
+    memset(&serveraddr,0, sizeof(serveraddr)); 
+
+    serveraddr.sin_family = AF_INET; 
+
+    serveraddr.sin_port = htons(portno); 
+
+    serveraddr.sin_addr.s_addr = INADDR_ANY; 
+
+  
+
+    m_serversocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); 
+
+    if(m_serversocket == -1) 
+
+    { 
+
+        AfxMessageBox("Socket Initialiation Error"); 
+
+    } 
+
+  
+
+    if(bind(m_serversocket, (SOCKADDR*)&serveraddr,sizeof(SOCKADDR_IN)) < 0) 
+
+    { 
+
+         AfxMessageBox("ERROR binding in the server socket"); 
+
+         exit(1); 
+
+    } 
+
+  
+
+    if(listen(m_serversocket,0) < 0) 
+
+    { 
+
+         AfxMessageBox("ERROR listening in the server socket"); 
+
+         exit(1); 
+
+    } 
+
+  
+
+    SetTimer(0x01, 100, NULL); 
+
+} 
+
+  
+
+static void f(void *p) 
+
+{ 
+
+    CSocketTestServerDlg *pDlg = reinterpret_cast<CSocketTestServerDlg*>(p); 
+
+    pDlg->ProcessClientRequest(); 
+
+} 
+
+  
+
+void CSocketTestServerDlg::ProcessClientRequest() 
+
+{ 
+
+    SOCKADDR_IN clientaddr; 
+
+    struct hostent *hostentry; 
+
+    int len = sizeof(clientaddr); 
+
+    SOCKET clientsocket = accept(m_serversocket, (sockaddr*)&clientaddr, &len); 
+
+    
+
+    if(len == -1) 
+
+    { 
+
+        AfxMessageBox("Error accpeting the client socket"); 
+
+    } 
+
+    else 
+
+    { 
+
+        char *p = inet_ntoa(clientaddr.sin_addr); 
+
+        int portno = ntohs(clientaddr.sin_port); 
+
+        // int inet_pton(int af, const char *restrict src, void *restrict dst); 
+
+  
+
+        char rbuf[1024]; 
+
+        recv(clientsocket, rbuf, 1024, 0); 
+
+        for(int i = 1024; i >= 1; i--) 
+
+        { 
+
+            if(rbuf[i] == '\n' && rbuf[i - 1] == '\r') 
+
+            { 
+
+                rbuf[i-1] = '\0'; 
+
+                break; 
+
+            } 
+
+        } 
+
+        CString strRecvData; 
+
+        
+
+        strRecvData.Format("%s\r\n%s %d\r\n%s\r\n\r\n", (const char*)CTime::GetCurrentTime().Format("%B %d, %Y %H:%M:%S"), p, portno, rbuf); 
+
+        m_recvData += strRecvData; 
+
+        m_bRefershData = true; 
+
+        strcat(rbuf, "\r\n"); 
+
+        send(clientsocket, rbuf, 1024, 0); 
+
+        closesocket(clientsocket); 
+
+    } 
+
+} 
+
+  
+
+void CSocketTestServerDlg::OnTimer(UINT_PTR nIDEvent) 
+
+{ 
+
+    int idx = nIDEvent; 
+
+  
+
+    if(m_bRefershData == true) 
+
+    { 
+
+        m_bRefershData = false; 
+
+        UpdateData(FALSE); 
+
+    } 
+
+  
+
+    fd_set fds; 
+
+    struct timeval timeout; 
+
+    int result; 
+
+    timeout.tv_sec = 0; 
+
+    timeout.tv_usec = 100; 
+
+  
+
+    FD_ZERO(&fds); 
+
+    FD_SET(m_serversocket, &fds); 
+
+  
+
+    int rc = select(sizeof(fds)*8, &fds, NULL, NULL, &timeout); 
+
+    if (rc==-1) 
+
+    { 
+
+      AfxMessageBox("ERROR selecting in the server socket"); 
+
+      return; 
+
+    } 
+
+    else if(rc > 0) 
+
+    { 
+
+        if (FD_ISSET(m_serversocket, &fds)) 
+
+        { 
+
+            m_bRefershData = false; 
+
+            HANDLE h = (HANDLE) ::_beginthread(f, 0, (void*) this); 
+
+        } 
+
+        
+
+    }        
+
+    CDialog::OnTimer(nIDEvent); 
+
+} 
+ 
