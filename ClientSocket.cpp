@@ -28,4 +28,20 @@ void CClientSocket::OnReceive(int nErrorCode)
 	CSocket::OnReceive(nErrorCode);
 }
 
-bool CClient
+bool CClientSocket::ConnectToServer(const CString& strServerAddress, UINT nServerPort)
+{
+	if (Create())
+	{
+		if (Connect(strServerAddress, nServerPort))
+			return true;
+
+		Close();
+	}
+
+	return false;
+}
+
+void CClientSocket::SendMessageToServer(const CString& message)
+{
+	Send(message);
+}
